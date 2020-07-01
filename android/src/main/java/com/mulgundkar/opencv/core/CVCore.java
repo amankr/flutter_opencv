@@ -88,12 +88,16 @@ public class CVCore {
             Size size = new Size((double) kernelSize.get(0), (double) kernelSize.get(1));
             // Convert the image to Gray
             Imgproc.GaussianBlur(src, dst, size, sigmaX);
-
+            Mat rotate = new Mat();
+            Core.rotate(dst, rotate, Core.ROTATE_90_CLOCKWISE);
+            System.out.println("Rotating");
             //instantiating an empty MatOfByte class
             MatOfByte matOfByte = new MatOfByte();
             //Converting the Mat object to MatOfByte
-            Imgcodecs.imencode(".jpg", dst, matOfByte);
+            Imgcodecs.imencode(".jpg", rotate, matOfByte);
             byteArray = matOfByte.toArray();
+            System.out.println("Source: " + byteData.length);
+            System.out.println("Output: " + byteArray.length);
         } catch (Exception e) {
             System.out.println("OpenCV Error: " + e.toString());
         }
@@ -643,6 +647,62 @@ public class CVCore {
             byteArray = matOfByte.toArray();
 //            System.out.println("OUT: " + dst);
         } catch (Exception e) {
+            System.out.println("OpenCV Error: " + e.toString());
+        }
+        return byteArray;
+    }
+
+    String ds(float[] p){
+        StringBuilder sb = new StringBuilder();
+        for (int i=0;i<p.length;++i)
+            sb.append(p[i]+", ");
+        return sb.toString();
+    }
+
+    @SuppressLint("MissingPermission")
+    public byte[] perspectiveTransformation(byte[] byteData, ArrayList points){
+        byte[] byteArray = new byte[0];
+        final int pointSize = 8;
+        try{
+            if(points.size() != pointSize)
+                throw new Exception("points should be 8");
+            Mat rect = new Mat(4, 2, CvType.CV_32F);
+            float[] rp = new float[pointSize];
+            for (int i=0;i<pointSize;++i)
+                rp[i] = (float)(double)points.get(i);
+            rect.put(4, 2, rp);
+            System.out.println("OpenCV Rect Matrix");
+            Point tl = new Point(rp[0], rp[1]);
+            Point tr = new Point(rp[2], rp[3]);
+            Point br = new Point(rp[4], rp[5]);
+            Point bl = new Point(rp[6], rp[7]);
+
+            double widthA = Math.sqrt(((br.x-bl.x) * (br.x-bl.x)) + ((br.y - bl.y) * (br.y - bl.y)));
+            double widthB = Math.sqrt(((tr.x-tl.x) * (tr.x-tl.x)) + ((tr.y - tl.y) * (tr.y - tl.y)));
+            int maxWidth = Math.max((int)widthA, (int)widthB);
+
+            double heightA = Math.sqrt(((tr.x-br.x) * (tr.x-br.x)) + ((tr.y-br.y) * (tr.y-br.y)));
+            double heightB = Math.sqrt(((tl.x-bl.x) * (tl.x-bl.x)) + ((tl.y-bl.y) * (tl.y-bl.y)));
+            int maxHeight = Math.max((int)heightA, (int)heightB);
+
+            Mat dst = new Mat(4, 2, CvType.CV_32F);
+            float[] dstData = {0, 0, maxWidth-1, 0, maxWidth-1, maxHeight-1, 0, maxHeight-1};
+            dst.put(4, 2, dstData);
+
+            System.out.println("OpenCV Rect: " + ds(rp));
+            System.out.println("OpenCV DST: " + ds(dstData));
+
+            Mat M = Imgproc.getPerspectiveTransform(rect, dst);
+            System.out.println("OpenCV Perspective Matrix ");
+            Mat wrapped = new Mat();
+            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
+            Imgproc.warpPerspective(src, wrapped, M, new Size(maxWidth, maxHeight));
+            System.out.println("OpenCV warpPerspective ");
+            MatOfByte matOfByte = new MatOfByte();
+            Imgcodecs.imencode(".jpg", wrapped, matOfByte);
+            byteArray = matOfByte.toArray();
+            System.out.println("OpenCV Result "+byteArray.length);
+        }catch (Exception e){
             System.out.println("OpenCV Error: " + e.toString());
         }
         return byteArray;

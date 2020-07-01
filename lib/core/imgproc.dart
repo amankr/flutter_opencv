@@ -840,4 +840,15 @@ class ImgProc {
     /// Function returns the set String as result, use for debugging
     return result;
   }
+
+  static Future<dynamic> perspectiveTransform(
+    Uint8List byteData,
+    List<double> points,
+  ) async{
+    final dynamic result = await _channel.invokeMethod('perspectiveTransformation',{
+      'byteData' : byteData,
+      'points' : points
+    });
+    return result;
+  }
 }
