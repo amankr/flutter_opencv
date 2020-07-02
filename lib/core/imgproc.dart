@@ -842,12 +842,16 @@ class ImgProc {
   }
 
   static Future<dynamic> perspectiveTransform(
-    Uint8List byteData,
+    String imagePath,
     List<double> points,
+    int frameWidth,
+    int frameHeight
   ) async{
     final dynamic result = await _channel.invokeMethod('perspectiveTransformation',{
-      'byteData' : byteData,
-      'points' : points
+      'imagePath' : imagePath,
+      'points' : points,
+      'frameWidth' : frameWidth,
+      'frameHeight' : frameHeight
     });
     return result;
   }

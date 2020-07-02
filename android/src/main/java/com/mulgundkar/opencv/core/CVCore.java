@@ -3,6 +3,7 @@ package com.mulgundkar.opencv.core;
 import android.annotation.SuppressLint;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -654,18 +655,24 @@ public class CVCore {
     }
 
     @SuppressLint("MissingPermission")
-    public byte[] perspectiveTransformation(byte[] byteData, ArrayList points){
+    public byte[] perspectiveTransformation(String imagePath, ArrayList points, int frameWidth, int frameHeight){
         byte[] byteArray = new byte[0];
         final int pointSize = 8;
         try{
             if(points.size() != pointSize)
                 throw new Exception("points should be 8");
 
+            Mat src = Imgcodecs.imread(imagePath);
+            int imageHeight = src.rows();
+            int imageWidth = src.cols();
+            double X_factor = (double)imageWidth/(double)frameWidth;
+            double Y_factor = (double)imageHeight/(double)frameHeight;
+
             System.out.println("OpenCV Rect Matrix");
-            Point tl = new Point((double)points.get(0), (double)points.get(1));
-            Point tr = new Point((double)points.get(2), (double)points.get(3));
-            Point br = new Point((double)points.get(4), (double)points.get(5));
-            Point bl =new Point((double)points.get(6), (double)points.get(7));
+            Point tl = new Point((double)points.get(0) * X_factor, (double)points.get(1) * Y_factor);
+            Point tr = new Point((double)points.get(2) * X_factor, (double)points.get(3) * Y_factor);
+            Point br = new Point((double)points.get(4) * X_factor, (double)points.get(5) * Y_factor);
+            Point bl =new Point((double)points.get(6) * X_factor, (double)points.get(7) * Y_factor);
             List<Point> rectPoints = new ArrayList<Point>();
             rectPoints.add(tl);
             rectPoints.add(tr);
@@ -693,10 +700,9 @@ public class CVCore {
             System.out.println("OpenCV Perspective Matrix "+M.rows()+" "+M.cols()+" "+M);
 
             Mat wrapped = new Mat();
-            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
-            Mat rotate = new Mat();
-            Core.rotate(src, rotate, Core.ROTATE_90_CLOCKWISE);
-            Imgproc.warpPerspective(rotate, wrapped, M, new Size(maxWidth, maxHeight));
+
+
+            Imgproc.warpPerspective(src, wrapped, M, new Size(maxWidth, maxHeight));
             System.out.println("OpenCV warpPerspective ");
             MatOfByte matOfByte = new MatOfByte();
             Imgcodecs.imencode(".jpg", wrapped, matOfByte);
