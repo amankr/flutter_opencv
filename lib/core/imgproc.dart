@@ -895,4 +895,42 @@ class ImgProc {
     });
     return result;
   }
+
+  static Future<dynamic> blackAndWhite1(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('blackAndWhite1', {
+      'byteData': byteData
+    });
+    return result;
+  }
+  static Future<dynamic> blackAndWhite2(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('blackAndWhite2', {
+      'byteData': byteData
+    });
+    return result;
+  }
+
+  static Future<dynamic> photoCopy(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('photoCopy', {
+      'byteData': byteData
+    });
+    return result;
+  }
+
+  static Future<dynamic> document(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('document', {
+      'byteData': byteData
+    });
+    return result;
+  }
+
+  static Future<dynamic> findPoints(String imagePath,
+    int frameWidth,
+    int frameHeight) async{
+      final dynamic result = await _channel.invokeMethod('findPoints',{
+      'imagePath' : imagePath,
+      'frameWidth' : frameWidth,
+      'frameHeight' : frameHeight
+    });
+    return result;
+    }
 }

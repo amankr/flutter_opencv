@@ -156,6 +156,21 @@ public class OpenCV4Plugin implements FlutterPlugin, MethodCallHandler {
             case "autoEnhance":
                 result.success(core.autoEnhance((byte[]) call.argument("byteData")));
                 break;
+            case "photoCopy":
+                result.success(core.photoCopy((byte[]) call.argument("byteData")));
+                break;
+            case "document":
+                result.success(core.document((byte[]) call.argument("byteData")));
+                break;
+            case "blackAndWhite1":
+                result.success(core.blackAndWhite1((byte[]) call.argument("byteData")));
+                break;
+            case "blackAndWhite2":
+                result.success(core.blackAndWhite2((byte[]) call.argument("byteData")));
+                break;
+            case "findPoints":
+                result.success(core.findPoints((String) call.argument("imagePath"), (int)call.argument("frameWidth"), (int)call.argument("frameHeight")));
+                break;
             default:
                 result.notImplemented();
                 break;
