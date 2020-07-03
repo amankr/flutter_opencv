@@ -950,18 +950,19 @@ public class CVCore {
         double[] points = new double[pointSize];
         try{
             Mat src = Imgcodecs.imread(imagePath);
+            Imgproc.resize(src, src, new Size(500, 500));
             int imageHeight = src.rows();
             int imageWidth = src.cols();
             double X_factor = (double)imageWidth/(double)frameWidth;
             double Y_factor = (double)imageHeight/(double)frameHeight;
-            double minArea = (double)imageWidth * (double)imageHeight * .0;
+            double minArea = (double)imageWidth * (double)imageHeight * .16;
 
             Mat srcGray = new Mat();
             Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
             Core.normalize(srcGray, srcGray, 0, 255d, Core.NORM_MINMAX);
             // Thresholding
             System.out.println("Thresholding");
-            Imgproc.threshold(srcGray, srcGray, 150, 255, Imgproc.THRESH_TRUNC);
+            Imgproc.threshold(srcGray, srcGray, 190, 255, Imgproc.THRESH_TRUNC);
             Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10d, 10d));
             Imgproc.morphologyEx(srcGray, srcGray, Imgproc.MORPH_CLOSE, kernel);
             // Edge
@@ -1023,14 +1024,18 @@ public class CVCore {
             if(maxValIdx != -1) {
                 maxContour = orderPointsClockwise(maxContour);
                 System.out.println("OpenCV Result " + maxContour.toArray());
+                points[0] = maxContour.toArray()[0].x/X_factor; points[1] = maxContour.toArray()[0].y/Y_factor;
+                points[2] = maxContour.toArray()[1].x/X_factor; points[3] = maxContour.toArray()[1].y/Y_factor;
+                points[4] = maxContour.toArray()[2].x/X_factor; points[5] = maxContour.toArray()[2].y/Y_factor;
+                points[6] = maxContour.toArray()[3].x/X_factor; points[7] = maxContour.toArray()[3].y/Y_factor;
             }else{
-                throw new Exception("No box found");
+                points[0] = 0; points[1] = 0;
+                points[2] = 0; points[3] = 0;
+                points[4] = 0; points[5] = 0;
+                points[6] = 0; points[7] = 0;
             }
 
-            points[0] = maxContour.toArray()[0].x/X_factor; points[1] = maxContour.toArray()[0].y/Y_factor;
-            points[2] = maxContour.toArray()[1].x/X_factor; points[3] = maxContour.toArray()[1].y/Y_factor;
-            points[4] = maxContour.toArray()[2].x/X_factor; points[5] = maxContour.toArray()[2].y/Y_factor;
-            points[6] = maxContour.toArray()[3].x/X_factor; points[7] = maxContour.toArray()[3].y/Y_factor;
+
 
             System.out.println("OpenCV findPoints " + points.toString());
         }catch (Exception e){
