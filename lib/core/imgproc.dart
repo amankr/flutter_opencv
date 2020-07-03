@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
@@ -852,6 +853,45 @@ class ImgProc {
       'points' : points,
       'frameWidth' : frameWidth,
       'frameHeight' : frameHeight
+    });
+    return result;
+  }
+
+  static Future<dynamic> rotateLeft(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('rotateLeft', {
+      'byteData': byteData
+    });
+    return result;
+  }
+
+  static Future<dynamic> rotateRight(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('rotateRight', {
+      'byteData': byteData
+    });
+    return result;
+  }
+
+  static Future<dynamic> changeBrightnessAndContrast(
+    Uint8List byteData, double brightness, double contrast) async{
+
+    final dynamic result = await _channel.invokeMethod('changeBrightnessAndContrast', {
+      'byteData': byteData,
+      'brightness' : brightness,
+      'contrast' : contrast
+    });
+    return result;
+  }
+
+  static Future<dynamic> greyScale(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('greyScale', {
+      'byteData': byteData
+    });
+    return result;
+  }
+
+  static Future<dynamic> autoEnhance(Uint8List byteData) async{
+    final dynamic result = await _channel.invokeMethod('autoEnhance', {
+      'byteData': byteData
     });
     return result;
   }

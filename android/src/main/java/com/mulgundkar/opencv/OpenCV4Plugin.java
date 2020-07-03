@@ -141,6 +141,21 @@ public class OpenCV4Plugin implements FlutterPlugin, MethodCallHandler {
             case "perspectiveTransformation":
                 result.success(core.perspectiveTransformation((String) call.argument("imagePath"), (ArrayList) call.argument("points"), (int)call.argument("frameWidth"), (int)call.argument("frameHeight")));
                 break;
+            case "rotateLeft":
+                result.success(core.rotateLeft((byte[]) call.argument("byteData")));
+                break;
+            case "rotateRight":
+                result.success(core.rotateRight((byte[]) call.argument("byteData")));
+                break;
+            case "changeBrightnessAndContrast":
+                result.success(core.changeBrightnessAndContrast((byte[]) call.argument("byteData"), (double) call.argument("brightness"), (double) call.argument("contrast")));
+                break;
+            case "greyScale":
+                result.success(core.greyScale((byte[]) call.argument("byteData")));
+                break;
+            case "autoEnhance":
+                result.success(core.autoEnhance((byte[]) call.argument("byteData")));
+                break;
             default:
                 result.notImplemented();
                 break;

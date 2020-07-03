@@ -7,6 +7,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfFloat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -713,4 +714,160 @@ public class CVCore {
         }
         return byteArray;
     }
+
+    @SuppressLint("MissingPermission")
+    public byte[] rotateLeft(byte[] byteData){
+        byte[] byteArray = new byte[0];
+        try{
+            Mat dst = new Mat();
+            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
+            Core.rotate(src, dst, Core.ROTATE_90_COUNTERCLOCKWISE);
+            MatOfByte matOfByte = new MatOfByte();
+            Imgcodecs.imencode(".jpg", dst, matOfByte);
+            byteArray = matOfByte.toArray();
+        }catch (Exception e){
+            System.out.println("OpenCV Error: " + e.toString());
+        }
+        return byteArray;
+    }
+
+    @SuppressLint("MissingPermission")
+    public byte[] rotateRight(byte[] byteData){
+        byte[] byteArray = new byte[0];
+        try{
+            Mat dst = new Mat();
+            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
+            Core.rotate(src, dst, Core.ROTATE_90_CLOCKWISE);
+            MatOfByte matOfByte = new MatOfByte();
+            Imgcodecs.imencode(".jpg", dst, matOfByte);
+            byteArray = matOfByte.toArray();
+        }catch (Exception e){
+            System.out.println("OpenCV Error: " + e.toString());
+        }
+        return byteArray;
+    }
+
+    @SuppressLint("MissingPermission")
+    public byte[] changeBrightnessAndContrast(byte[] byteData, double brightness, double contrast){
+        byte[] byteArray = new byte[0];
+        try{
+            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
+            Mat dst = new Mat(src.rows(), src.cols(), src.type());
+            src.convertTo(dst, -1, contrast, brightness);
+            MatOfByte matOfByte = new MatOfByte();
+            Imgcodecs.imencode(".jpg", dst, matOfByte);
+            byteArray = matOfByte.toArray();
+        }catch (Exception e){
+            System.out.println("OpenCV Error: " + e.toString());
+        }
+        return byteArray;
+    }
+
+    @SuppressLint("MissingPermission")
+    public byte[] greyScale(byte[] byteData) {
+        byte[] byteArray = new byte[0];
+        try{
+            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
+            Mat dst = new Mat(src.rows(), src.cols(), src.type());
+            Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGR2GRAY);
+            MatOfByte matOfByte = new MatOfByte();
+            Imgcodecs.imencode(".jpg", dst, matOfByte);
+            byteArray = matOfByte.toArray();
+        }catch (Exception e){
+            System.out.println("OpenCV Error: " + e.toString());
+        }
+        return byteArray;
+    }
+
+
+    @SuppressLint("MissingPermission")
+    public byte[] autoEnhance(byte[] byteData) {
+        float clipHistPercent= 0;//.15f;
+        byte[] byteArray = new byte[0];
+        try {
+            Mat dst = new Mat();
+            // Decode image from input byte array
+            Mat src = Imgcodecs.imdecode(new MatOfByte(byteData), Imgcodecs.IMREAD_UNCHANGED);
+            Size size = new Size((double) 3d, 3d);
+            // Convert the image to Gray
+            //Imgproc.GaussianBlur(src, src, size, 0);
+
+            int histSize = 256;
+            double alpha, beta;
+            double minGray = 0, maxGray = 0;
+            System.out.println(CvType.CV_8UC1);
+            System.out.println(CvType.CV_8UC3);
+            System.out.println(CvType.CV_8UC4);
+
+            System.out.println(src.type());
+
+            //to calculate grayscale histogram
+            Mat gray = new Mat();
+            if (src.type() == CvType.CV_8UC1) gray = src;
+            if (src.type() == CvType.CV_8UC3) Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY);
+            if (clipHistPercent == 0)
+            {
+                // keep full available range
+                Core.MinMaxLocResult d = Core.minMaxLoc(gray);
+                minGray = d.minVal;
+                maxGray = d.maxVal;
+            }else{
+                Mat hist = new Mat(); //the grayscale histogram
+                Mat mask = new Mat();
+                MatOfFloat histRange = new MatOfFloat(0f, 256f);
+                MatOfInt histSize_ = new MatOfInt(256);
+                MatOfInt channels = new MatOfInt(0);
+                ArrayList<Mat> listOfMat = new ArrayList<>();
+                listOfMat.add(gray);
+                boolean accumulate = false;
+                Imgproc.calcHist(listOfMat, channels, mask, hist, histSize_, histRange, accumulate);
+
+                double[] accumulator;
+                accumulator = new double[histSize];
+                accumulator[0] = hist.get(0,0)[0];
+                for (int i = 1; i < histSize; i++){
+                    accumulator[i] = accumulator[i - 1] + hist.get(i,0)[0];
+                }
+                // locate points that cuts at required value
+                double max = accumulator[histSize-1];
+                clipHistPercent *= (max / 100.0); //make percent as absolute
+                clipHistPercent /= 2.0; // left and right wings
+                // locate left cut
+                minGray = 0;
+                while (accumulator[(int)minGray] < clipHistPercent)
+                    minGray++;
+
+                // locate right cut
+                maxGray = histSize - 1;
+                while (accumulator[(int)maxGray] >= (max - clipHistPercent))
+                    maxGray--;
+            }
+            // current range
+            //double inputRange = maxGray - minGray;
+            double inputRange = maxGray - minGray;
+            alpha = (histSize - 1) / inputRange;   // alpha expands current range to histsize range
+            beta = minGray * alpha;             // beta shifts current range so that minGray will go to 0
+            //alpha = 3.072289156626506;
+            //beta = -144.3975903614458;
+
+            // Apply brightness and contrast normalization
+            // convertTo operates with saurate_cast
+            src.convertTo(dst, -1, alpha, beta);
+            // TODO add B/W mask on top
+
+            System.out.println("AutoEnhance completed");
+
+            //instantiating an empty MatOfByte class
+            MatOfByte matOfByte = new MatOfByte();
+            //Converting the Mat object to MatOfByte
+            Imgcodecs.imencode(".jpg", dst, matOfByte);
+            byteArray = matOfByte.toArray();
+        } catch (Exception e) {
+            System.out.println("OpenCV Error: " + e.toString());
+        }
+        return byteArray;
+    }
+
+
+
 }
