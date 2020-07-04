@@ -815,7 +815,7 @@ public class CVCore {
 
     @SuppressLint("MissingPermission")
     public byte[] autoEnhance(byte[] byteData) {
-        float clipHistPercent= 0;//.15f;
+        float clipHistPercent= 0.06f;
         byte[] byteArray = new byte[0];
         try {
             Mat dst = new Mat();
@@ -943,6 +943,107 @@ public class CVCore {
         return screenCnt2f;
     }
 
+//    @SuppressLint("MissingPermission")
+//    public double[] findPoints(String imagePath, int frameWidth, int frameHeight){
+//        byte[] byteArray = new byte[0];
+//        final int pointSize = 8;
+//        double[] points = new double[pointSize];
+//        try{
+//            Mat src = Imgcodecs.imread(imagePath);
+//            Imgproc.resize(src, src, new Size(500, 500));
+//            int imageHeight = src.rows();
+//            int imageWidth = src.cols();
+//            double X_factor = (double)imageWidth/(double)frameWidth;
+//            double Y_factor = (double)imageHeight/(double)frameHeight;
+//            double minArea = (double)imageWidth * (double)imageHeight * .16;
+//
+//            Mat srcGray = new Mat();
+//            Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
+//            Core.normalize(srcGray, srcGray, 0, 255d, Core.NORM_MINMAX);
+//            // Thresholding
+//            System.out.println("Thresholding");
+//            Imgproc.threshold(srcGray, srcGray, 190, 255, Imgproc.THRESH_TRUNC);
+//            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10d, 10d));
+//            Imgproc.morphologyEx(srcGray, srcGray, Imgproc.MORPH_CLOSE, kernel);
+//            // Edge
+//            System.out.println("Edge");
+//            Mat edge = new Mat();
+//            Imgproc.Canny(srcGray, edge, 185, 55);
+//            // Contours
+//            System.out.println("Contours");
+//            List<MatOfPoint> contours = new ArrayList<>();
+//            Mat hierarchy = new Mat();
+//            Imgproc.findContours(edge, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+//            System.out.println("Contours " + contours.size());
+//            // Filtering
+//            System.out.println("Filtering");
+//            List<MatOfPoint> filtered = new ArrayList<>();
+//            for (int i = 0; i < contours.size(); i++) {
+//                MatOfInt hull = new MatOfInt();
+//                MatOfPoint contour = contours.get(i);
+//                Imgproc.convexHull(contour, hull);
+//                MatOfPoint mopHull = new MatOfPoint();
+//                mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
+//                for (int j = 0; j < hull.size().height; j++) {
+//                    int index = (int) hull.get(j, 0)[0];
+//                    double[] point = new double[]{contour.get(index, 0)[0], contour.get(index, 0)[1]};
+//                    mopHull.put(j, 0, point);
+//                }
+//                double area = Imgproc.contourArea(mopHull);
+//                if (area < minArea)
+//                    continue;
+//                filtered.add(mopHull);
+//            }
+//            // Choose Max
+//            System.out.println("Choose max " + filtered.size());
+//            double maxVal = 0;
+//            int maxValIdx = -1;
+//            MatOfPoint2f maxContour = new MatOfPoint2f();
+//            for (int contourIdx = 0; contourIdx < filtered.size(); contourIdx++)
+//            {
+//                MatOfPoint contour = filtered.get(contourIdx);
+//                double contourArea = Imgproc.contourArea(contour);
+//                //System.out.println("contourArea " + contourArea);
+//                if (maxVal < contourArea)
+//                {
+//                    double peri = Imgproc.arcLength(new MatOfPoint2f(contour.toArray()), true);
+//                    //System.out.println("peri " + peri);
+//                    MatOfPoint2f approx = new MatOfPoint2f();
+//                    Imgproc.approxPolyDP(new MatOfPoint2f(contour.toArray()),approx,peri*0.025,true);
+//                    //check its rectangle-ness:
+//                    System.out.println(approx.size(0));
+//                    //System.out.println(approx.toString());
+//                    if(approx.size(0) == 4) {
+//                        maxVal = contourArea;
+//                        maxValIdx = contourIdx;
+//                        maxContour = approx;
+//                    }
+//                }
+//            }
+//            //output.get(maxValIdx).toArray();
+//            if(maxValIdx != -1) {
+//                maxContour = orderPointsClockwise(maxContour);
+//                System.out.println("OpenCV Result " + maxContour.toArray());
+//                points[0] = maxContour.toArray()[0].x/X_factor; points[1] = maxContour.toArray()[0].y/Y_factor;
+//                points[2] = maxContour.toArray()[1].x/X_factor; points[3] = maxContour.toArray()[1].y/Y_factor;
+//                points[4] = maxContour.toArray()[2].x/X_factor; points[5] = maxContour.toArray()[2].y/Y_factor;
+//                points[6] = maxContour.toArray()[3].x/X_factor; points[7] = maxContour.toArray()[3].y/Y_factor;
+//            }else{
+//                points[0] = 0; points[1] = 0;
+//                points[2] = 0; points[3] = 0;
+//                points[4] = 0; points[5] = 0;
+//                points[6] = 0; points[7] = 0;
+//            }
+//
+//
+//
+//            System.out.println("OpenCV findPoints " + points.toString());
+//        }catch (Exception e){
+//            System.out.println("OpenCV Error: " + e.toString());
+//        }
+//        return points;
+//    }
+
     @SuppressLint("MissingPermission")
     public double[] findPoints(String imagePath, int frameWidth, int frameHeight){
         byte[] byteArray = new byte[0];
@@ -951,6 +1052,7 @@ public class CVCore {
         try{
             Mat src = Imgcodecs.imread(imagePath);
             Imgproc.resize(src, src, new Size(500, 500));
+
             int imageHeight = src.rows();
             int imageWidth = src.cols();
             double X_factor = (double)imageWidth/(double)frameWidth;
@@ -959,11 +1061,13 @@ public class CVCore {
 
             Mat srcGray = new Mat();
             Imgproc.cvtColor(src, srcGray, Imgproc.COLOR_BGR2GRAY);
+            Imgproc.medianBlur(srcGray,srcGray,5);
             Core.normalize(srcGray, srcGray, 0, 255d, Core.NORM_MINMAX);
             // Thresholding
             System.out.println("Thresholding");
             Imgproc.threshold(srcGray, srcGray, 190, 255, Imgproc.THRESH_TRUNC);
-            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10d, 10d));
+            Core.normalize(srcGray, srcGray, 0, 255d, Core.NORM_MINMAX);
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(15d, 15d));
             Imgproc.morphologyEx(srcGray, srcGray, Imgproc.MORPH_CLOSE, kernel);
             // Edge
             System.out.println("Edge");
